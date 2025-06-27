@@ -12,7 +12,7 @@ A simple app to demonstrate line-breaking algorithms.
 To run the app:
 
 ```bash
-go build github.com/tomconder/linebreak/cmd/linebreak
+go run github.com/tomconder/linebreak/cmd/linebreak
 ```
 
 To use the package in your project, you can get it using Go modules:
