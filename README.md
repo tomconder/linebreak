@@ -1,9 +1,18 @@
 # linebreak
 
-A simple app to demonstrate line-breaking algorithms.
+A Go library demonstrating line-breaking algorithms with optimal text formatting.
+
+
+## Overview
+
+This project implements two line-breaking algorithms to format text within specified width constraints:
+
+- **Greedy Algorithm**: Fast, simple approach that fits as many words as possible on each line
+- **Knuth-Plass Algorithm**: Sophisticated dynamic programming solution that optimizes line breaks based on penalty functions
 
 ## Features
 
+- **Multiple Algorithms:** Choose between greedy and Knuth-Plass line breaking
 - **Dynamic Programming:** Efficiently computes optimal line breaks. It uses a penalty for trailing spaces to promote balanced text.
 - **Unit Tested:** Includes unit tests to ensure quality and to allow future changes with confidence.
 
