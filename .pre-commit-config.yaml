@@ -14,7 +14,6 @@ repos:
     rev: 0.7.1
     hooks:
       - id: fix-smartquotes
-        exclude: assets/models|sponge/deps
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -23,12 +22,9 @@ repos:
       - id: detect-aws-credentials
         args: ["--allow-missing-credentials"]
       - id: mixed-line-ending
-        exclude: assets/models|sponge/deps
         args: ["--fix=lf"]
       - id: trailing-whitespace
-        exclude: assets/models|sponge/deps
       - id: end-of-file-fixer
-        exclude: assets/models|sponge/deps
       - id: check-case-conflict
       - id: check-executables-have-shebangs
       - id: check-merge-conflict
@@ -37,7 +33,6 @@ repos:
     rev: v1.44.0
     hooks:
       - id: typos
-        exclude: .clang-tidy|assets/models|sponge/deps
 
   - repo: https://github.com/MaratFM/pre-commit-remark
     rev: 1.0.0
@@ -45,4 +40,3 @@ repos:
       - id: remark
         args: ["--output", "--frail"]
         files: "\\.md$"
-        exclude: assets/models|sponge/deps
