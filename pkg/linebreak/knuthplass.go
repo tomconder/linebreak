@@ -38,7 +38,7 @@ func KnuthPlass(text string, width int) []string {
 			spaces := j - i - 1
 			totalLen := lineLength + spaces
 
-			if totalLen > width {
+			if totalLen > width && j > i+1 {
 				break
 			}
 

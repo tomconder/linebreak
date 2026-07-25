@@ -67,6 +67,14 @@ func TestKnuthPlass(t *testing.T) {
 				expected: []string{"The lazy", "yellow dog", "was caught by", "the slow red", "fox as he lay", "sleeping in", "the sun"},
 			},
 		},
+		{
+			name: "Word longer than width",
+			args: args{
+				text:     "a supercalifragilisticexpialidocious word",
+				width:    10,
+				expected: []string{"a", "supercalifragilisticexpialidocious", "word"},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
