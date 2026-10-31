@@ -1,36 +1,29 @@
 # linebreak
 
-A Go library demonstrating line-breaking algorithms with optimal text formatting.
+linebreak is a Go library and command-line tool that breaks text into lines of a given width. It has four functions, `Greedy`, `MinRaggedness`, `KnuthPlass` and `Justify`, and they use three algorithms:
 
-## Overview
+* Greedy puts as many words on each line as fit.
+* Minimum raggedness uses dynamic programming to choose the breaks that make the line lengths most even.
+* Knuth-Plass is the algorithm that TeX uses. It chooses the breaks with the lowest total cost for the whole paragraph, and it can break words at soft hyphens and justify lines.
 
-This project implements three algorithms to format text within specified width constraints. Knuth-Plass can also justify lines:
+Width is counted in runes (Unicode code points), not bytes. The package has unit tests and fuzz tests.
 
-* **Greedy Algorithm**: Fast, simple approach that fits as many words as possible on each line
-* **Minimum Raggedness**: Dynamic programming that minimizes the squared trailing spaces of each line
-* **Knuth-Plass Algorithm**: The algorithm from TeX. It minimizes the total demerits of the paragraph, can break words at soft hyphens, and can justify lines
+## Install and run
 
-## Features
-
-* **Multiple Algorithms:** Choose between greedy, minimum raggedness and Knuth-Plass line breaking
-* **Dynamic Programming:** Efficiently computes optimal line breaks. Minimum raggedness penalizes trailing spaces to promote balanced text. Knuth-Plass minimizes demerits.
-* **Unicode Aware:** Width is counted in runes, not bytes.
-* **Unit Tested:** Includes unit and fuzz tests to ensure quality and to allow future changes with confidence.
-
-## Installation and Running
-
-The app reads text from standard input and writes the wrapped lines to standard output:
+The command reads text from standard input and writes the wrapped lines to standard output. For example:
 
 ```bash
 echo "The lazy yellow dog was caught by the slow red fox" | go run github.com/tomconder/linebreak/cmd/linebreak -width 14 -algo kp
 ```
 
-* `-width`: maximum line width in runes (default 80)
-* `-algo`: `greedy`, `minrag` for minimum raggedness, `kp` for Knuth-Plass, or `justify` for justified Knuth-Plass (default `kp`)
+The command has two flags:
 
-The app treats all of standard input as one paragraph, so blank lines are not kept.
+* `-width` sets the maximum line width in runes. The default is 80.
+* `-algo` sets the algorithm. It can be `greedy`, `minrag` for minimum raggedness, `kp` for Knuth-Plass, or `justify` for justified Knuth-Plass. The default is `kp`.
 
-To use the package in your project, you can get it using Go modules:
+The command treats all of standard input as one paragraph, so it doesn't keep blank lines.
+
+To use the package in a Go project, add it with `go get`:
 
 ```bash
 go get github.com/tomconder/linebreak/pkg/linebreak
@@ -40,15 +33,13 @@ go get github.com/tomconder/linebreak/pkg/linebreak
 
 ### Greedy
 
-The [greedy algorithm](https://en.wikipedia.org/wiki/Greedy_algorithm) breaks a sequence of words into lines. At each step it fits as many words as possible on each line within the given width.
-
-For example, the following text with a given width of 14:
+The [greedy algorithm](https://en.wikipedia.org/wiki/Greedy_algorithm) goes through the words in order, and it puts each word on the current line if the word fits. When a word doesn't fit, it starts a new line. For example, here is the following text at width 14:
 
 ```
 The lazy yellow dog was caught by the slow red fox as he lay sleeping in the sun
 ```
 
-gives the following result
+The greedy algorithm gives the following lines:
 
 ```
 The lazy
@@ -62,15 +53,7 @@ the sun
 
 ### Minimum raggedness
 
-The minimum raggedness algorithm breaks a sequence of words into lines that do not exceed the given width, except for a word that is longer than the width. It uses [dynamic programming](https://en.wikipedia.org/wiki/Dynamic_programming) to choose the breaks that minimize the sum of the squared trailing spaces of every line except the last.
-
-For example, the following text with a given width of 14:
-
-```
-The lazy yellow dog was caught by the slow red fox as he lay sleeping in the sun
-```
-
-gives the following result
+The minimum raggedness algorithm uses [dynamic programming](https://en.wikipedia.org/wiki/Dynamic_programming) to choose the breaks that minimize the sum of the squared trailing spaces of every line except the last. No line is wider than the width, unless one word is wider than the width. For the same text at width 14, the line lengths are more even:
 
 ```
 The lazy
@@ -84,19 +67,29 @@ the sun
 
 ### Knuth-Plass
 
-The [Knuth-Plass line breaking algorithm](https://en.wikipedia.org/wiki/Knuth%E2%80%93Plass_line-breaking_algorithm) treats text as boxes (words), glue (spaces) and penalties (possible breaks). For each possible line it computes a badness from how much the line must stretch, and it chooses the breaks with the lowest total demerits for the whole paragraph. It adds demerits when adjacent lines differ by more than one fitness class (for example a very loose line next to a decent one), and when two lines in a row end in a hyphen.
+The [Knuth-Plass algorithm](https://en.wikipedia.org/wiki/Knuth%E2%80%93Plass_line-breaking_algorithm) models text as boxes, glue and penalties. Boxes are words, glue is the space between words, and penalties are other places where a line can break, such as soft hyphens.
 
-Words can break at soft hyphens (U+00AD) in the input. There is no hyphenation dictionary. Greedy and minimum raggedness do not treat soft hyphens specially; they keep U+00AD in the words and count it toward the width.
+For each possible line, the algorithm computes a badness score from how much the glue must stretch to fill the width. It then turns badness and penalties into demerits, which are the cost of each line, and it chooses the breaks with the lowest total demerits for the paragraph. It adds extra demerits in two cases:
 
-Output is ragged-right: spaces do not stretch, and each line ends in space that can stretch, like TeX's `\raggedright`. For the example text at width 14 it gives the same lines as minimum raggedness. Ragged output differs from minimum raggedness only on some inputs, for example `big big dog quickly red` at width 10:
+* Two adjacent lines are in fitness classes that are more than one class apart. A fitness class groups lines by how loose or tight they are, so a very loose line next to a normal line costs more.
+* Two lines in a row end in a hyphen.
 
-| Minimum raggedness | Knuth-Plass |
-|---|---|
-| `big` / `big dog` / `quickly` / `red` | `big big` / `dog` / `quickly` / `red` |
+Words can break at soft hyphens (U+00AD) in the input, and there is no hyphenation dictionary. Greedy and minimum raggedness treat U+00AD as an ordinary character, so they keep it in the words and count it toward the width.
+
+`KnuthPlass` gives ragged-right output, like TeX's `\raggedright`. The spaces between words don't stretch, and each line instead ends in space that can stretch. For the example text at width 14, the output is the same as minimum raggedness. The two algorithms give different lines only on some inputs, e.g., `big big dog quickly red` at width 10:
+
+```
+Minimum raggedness   Knuth-Plass
+------------------   -----------
+big                  big big
+big dog              dog
+quickly              quickly
+red                  red
+```
 
 ### Justify
 
-`Justify` uses the Knuth-Plass algorithm with spaces that can stretch, then pads each line except the last to the full width. A line with one word is not padded. For the example text at width 14:
+`Justify` runs the Knuth-Plass algorithm with spaces that can stretch, and then it pads every line except the last to the full width. It doesn't pad a line that has one word. For the example text at width 14, it gives the following lines:
 
 ```
 The       lazy
@@ -108,4 +101,4 @@ sleeping    in
 the sun
 ```
 
-Narrow widths leave wide gaps because monospace text can only add whole spaces. Justification looks better at widths of 40 or more.
+Monospace text can only add whole spaces, so narrow widths leave wide gaps. Justified output looks better at widths of 40 or more.
