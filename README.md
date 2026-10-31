@@ -13,15 +13,19 @@ This project implements two line-breaking algorithms to format text within speci
 
 * **Multiple Algorithms:** Choose between greedy and Knuth-Plass line breaking
 * **Dynamic Programming:** Efficiently computes optimal line breaks. It uses a penalty for trailing spaces to promote balanced text.
-* **Unit Tested:** Includes unit tests to ensure quality and to allow future changes with confidence.
+* **Unicode Aware:** Width is counted in runes, not bytes.
+* **Unit Tested:** Includes unit and fuzz tests to ensure quality and to allow future changes with confidence.
 
 ## Installation and Running
 
-To run the app:
+The app reads text from standard input and writes the wrapped lines to standard output:
 
 ```bash
-go run github.com/tomconder/linebreak/cmd/linebreak
+echo "The lazy yellow dog was caught by the slow red fox" | go run github.com/tomconder/linebreak/cmd/linebreak -width 14 -algo kp
 ```
+
+* `-width`: maximum line width in runes (default 80)
+* `-algo`: `greedy` or `kp` for Knuth-Plass (default `kp`)
 
 To use the package in your project, you can get it using Go modules:
 
@@ -55,7 +59,7 @@ the sun
 
 ### Knuth-Plass
 
-The [Knuth-Plass line breaking algorithm](https://en.wikipedia.org/wiki/Knuth%E2%80%93Plass_line-breaking_algorithm) breaks a sequence of words into lines that do not exceed the given width. It uses [dynamic programming](https://en.wikipedia.org/wiki/Dynamic_programming) to determine optimal breakpoints based on a penalty function that discourages trailing empty spaces.
+The [Knuth-Plass line breaking algorithm](https://en.wikipedia.org/wiki/Knuth%E2%80%93Plass_line-breaking_algorithm) breaks a sequence of words into lines that do not exceed the given width, except for a word that is longer than the width. It uses [dynamic programming](https://en.wikipedia.org/wiki/Dynamic_programming) to determine optimal breakpoints based on a penalty function that discourages trailing empty spaces.
 
 For example, the following text with a given width of 14:
 
