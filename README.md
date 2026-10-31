@@ -26,7 +26,7 @@ echo "The lazy yellow dog was caught by the slow red fox" | go run github.com/to
 ```
 
 * `-width`: maximum line width in runes (default 80)
-* `-algo`: `greedy`, `minrag` for minimum raggedness, or `kp` for Knuth-Plass (default `kp`)
+* `-algo`: `greedy`, `minrag` for minimum raggedness, `kp` for Knuth-Plass, or `justify` for justified Knuth-Plass (default `kp`)
 
 To use the package in your project, you can get it using Go modules:
 
@@ -91,3 +91,19 @@ Output is ragged-right: spaces do not stretch, and each line ends in space that 
 | Minimum raggedness | Knuth-Plass |
 |---|---|
 | `big` / `big dog` / `quickly` / `red` | `big big` / `dog` / `quickly` / `red` |
+
+### Justify
+
+`Justify` uses the Knuth-Plass algorithm with spaces that can stretch, then pads each line except the last to the full width. A line with one word is not padded. For the example text at width 14:
+
+```
+The       lazy
+yellow dog was
+caught  by the
+slow  red  fox
+as    he   lay
+sleeping    in
+the sun
+```
+
+Narrow widths leave wide gaps because monospace text can only add whole spaces. Justification looks better at widths of 40 or more.

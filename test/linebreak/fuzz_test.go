@@ -74,6 +74,7 @@ func FuzzLineBreak(f *testing.F) {
 		greedy := linebreak.Greedy(text, width)
 		minrag := linebreak.MinRaggedness(text, width)
 		kp := linebreak.KnuthPlass(text, width)
+		justified := linebreak.Justify(text, width)
 
 		checkWords(t, "Greedy", text, greedy)
 		checkWidth(t, "Greedy", width, greedy)
@@ -81,6 +82,13 @@ func FuzzLineBreak(f *testing.F) {
 		checkWidth(t, "MinRaggedness", width, minrag)
 		checkText(t, "KnuthPlass", text, kp)
 		checkWidth(t, "KnuthPlass", width, kp)
+		checkText(t, "Justify", text, justified)
+		checkWidth(t, "Justify", width, justified)
+		for i, line := range justified[:max(len(justified)-1, 0)] {
+			if n := utf8.RuneCountInString(line); len(strings.Fields(line)) > 1 && n != width {
+				t.Fatalf("Justify: line %d %q is %d wide, want %d", i, line, n, width)
+			}
+		}
 
 		if mc, gc := cost(minrag, width), cost(greedy, width); mc > gc {
 			t.Fatalf("MinRaggedness cost %d is greater than Greedy cost %d: minrag %q, greedy %q", mc, gc, minrag, greedy)
