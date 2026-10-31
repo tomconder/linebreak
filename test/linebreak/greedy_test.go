@@ -12,7 +12,6 @@ Greedy wraps the text into lines that not exceed the width. It uses the greedy l
 */
 func TestGreedy(t *testing.T) {
 	type args struct {
-		name     string
 		text     string
 		width    int
 		expected []string
