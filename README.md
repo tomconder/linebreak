@@ -76,7 +76,7 @@ For each possible line, the algorithm computes a badness score from how much the
 
 Words can break at soft hyphens (U+00AD) in the input, and there is no hyphenation dictionary. Greedy and minimum raggedness treat U+00AD as an ordinary character, so they keep it in the words and count it toward the width.
 
-`KnuthPlass` gives ragged-right output, like TeX's `\raggedright`. The spaces between words don't stretch, and each line instead ends in space that can stretch. For the example text at width 14, the output is the same as minimum raggedness. The two algorithms give different lines only on some inputs, e.g., `big big dog quickly red` at width 10:
+`KnuthPlass` gives ragged-right output, like TeX's `\raggedright`. The spaces between words don't stretch, and each line instead ends in space that can stretch. For the example text at width 14, the output is the same as minimum raggedness. On most text without soft hyphens, `kp` and `minrag` give the same output, because both minimize a cost that grows with the empty space at the end of each line. The two algorithms give different lines only on some inputs, e.g., `big big dog quickly red` at width 10:
 
 ```
 Minimum raggedness   Knuth-Plass
