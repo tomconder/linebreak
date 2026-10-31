@@ -65,3 +65,64 @@ func TestDemerits(t *testing.T) {
 	// a negative penalty is subtracted: (10 + 0)² - 20²
 	assert.Equal(t, -300.0, demerits(lineFit{feasible: true}, item{kind: penalty, penalty: -20}, 1, 1, false))
 }
+
+// bruteForce tries every set of breaks and returns the lowest total demerits.
+func bruteForce(items []item, width, lineEndStretch int) float64 {
+	s := prefixSums(items)
+	var optional []int
+	for i := 0; i < len(items)-1; i++ {
+		if legal(items, i) {
+			optional = append(optional, i)
+		}
+	}
+	best := math.Inf(1)
+	for mask := 0; mask < 1<<len(optional); mask++ {
+		var ends []int
+		for k, p := range optional {
+			if mask&(1<<k) != 0 {
+				ends = append(ends, p)
+			}
+		}
+		ends = append(ends, len(items)-1)
+		total, start, prevClass, prevFlagged, ok := 0.0, 0, 1, false, true
+		for _, end := range ends {
+			f := lineAt(items, s, start, end, width, lineEndStretch)
+			if !f.feasible {
+				ok = false
+				break
+			}
+			class := fitness(f.ratio)
+			total += demerits(f, items[end], class, prevClass, prevFlagged)
+			prevClass, prevFlagged, start = class, items[end].flagged, end+1
+		}
+		if ok && total < best {
+			best = total
+		}
+	}
+	return best
+}
+
+func TestBreaksMatchesBruteForce(t *testing.T) {
+	texts := []string{
+		"The lazy yellow dog was caught by the slow red fox",
+		"a b c d e f g h i j",
+		soft("hy|phen|ation is ex|tra|or|di|nary"),
+		"a supercalifragilisticexpialidocious word here",
+		"aaa bb c dddd ee f gggggg",
+	}
+	for _, text := range texts {
+		for _, set := range []setting{ragged, justified} {
+			for width := 1; width <= 30; width++ {
+				items := tokenize(text, set.interwordStretch)
+				_, got := breaks(items, width, set.lineEndStretch)
+				assert.Equal(t, bruteForce(items, width, set.lineEndStretch), got, "%q %+v width %d", text, set, width)
+			}
+		}
+	}
+}
+
+func TestBreaksEndAtForcedBreak(t *testing.T) {
+	items := tokenize("The lazy yellow dog", ragged.interwordStretch)
+	ends, _ := breaks(items, 10, ragged.lineEndStretch)
+	assert.Equal(t, []int{3, 8}, ends) // the glue after "lazy", then the forced break
+}

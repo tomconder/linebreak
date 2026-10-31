@@ -16,6 +16,19 @@ const (
 	infBad          = 10000
 )
 
+// setting is how much a line can stretch, in runes. Ragged text works like
+// TeX's \raggedright: spaces do not stretch, and each line ends in glue that
+// stretches. Justified text stretches the spaces instead.
+type setting struct {
+	interwordStretch int
+	lineEndStretch   int
+}
+
+var (
+	ragged    = setting{interwordStretch: 0, lineEndStretch: 4}
+	justified = setting{interwordStretch: 2, lineEndStretch: 0}
+)
+
 type itemKind int
 
 const (
