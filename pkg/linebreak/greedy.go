@@ -2,6 +2,11 @@
 //
 // Width is counted in runes. A word longer than the width is placed on a
 // line by itself, so that line is wider than the width.
+//
+// In KnuthPlass and Justify, a line that ends at a soft hyphen includes the
+// added "-". A word fragment that fills the width exactly makes that line one
+// rune wider. A word with soft hyphens is broken at them even when it is
+// wider than the width.
 package linebreak
 
 import (

@@ -1,0 +1,79 @@
+package linebreak
+
+import (
+	"math"
+	"slices"
+	"strings"
+	"unicode/utf8"
+)
+
+/*
+MinRaggedness wraps the text into lines that do not exceed the width. It
+chooses the breaks that minimize the sum of the squared trailing spaces of
+every line except the last (the minimum raggedness algorithm).
+*/
+func MinRaggedness(text string, width int) []string {
+	if width <= 0 {
+		return []string{}
+	}
+
+	words := strings.Fields(text)
+	n := len(words)
+	if n == 0 {
+		return []string{}
+	}
+
+	lengths := make([]int, n+1)
+	for i, word := range words {
+		lengths[i+1] = lengths[i] + utf8.RuneCountInString(word)
+	}
+
+	minCost := make([]float64, n+1)
+	for i := 0; i <= n; i++ {
+		minCost[i] = math.Inf(1)
+	}
+	minCost[0] = 0
+
+	breakpoints := make([]int, n+1)
+
+	for i := 0; i < n; i++ {
+		for j := i + 1; j <= n; j++ {
+			lineLength := lengths[j] - lengths[i]
+			spaces := j - i - 1
+			totalLen := lineLength + spaces
+
+			if totalLen > width && j > i+1 {
+				break
+			}
+
+			// float64 so that a very large width cannot overflow the square
+			slack := float64(width - totalLen)
+			var cost float64
+			if j < n {
+				cost = slack * slack
+			}
+
+			if minCost[i]+cost < minCost[j] {
+				minCost[j] = minCost[i] + cost
+				breakpoints[j] = i
+			}
+		}
+	}
+
+	var breakList []int
+	for j := n; j > 0; j = breakpoints[j] {
+		breakList = append(breakList, j)
+	}
+	breakList = append(breakList, 0)
+
+	slices.Reverse(breakList)
+
+	groups := make([]string, 0, len(breakList)-1)
+	for i := 0; i < len(breakList)-1; i++ {
+		start, end := breakList[i], breakList[i+1]
+		line := strings.Join(words[start:end], " ")
+		groups = append(groups, line)
+	}
+
+	return groups
+}

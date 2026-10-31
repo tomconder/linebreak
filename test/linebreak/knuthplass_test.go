@@ -1,93 +1,49 @@
 package linebreak
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tomconder/linebreak/pkg/linebreak"
 )
 
+// soft replaces each "|" with a soft hyphen (U+00AD).
+func soft(s string) string {
+	return strings.ReplaceAll(s, "|", string(rune(0xAD)))
+}
+
 func TestKnuthPlass(t *testing.T) {
-	type args struct {
+	tests := []struct {
+		name     string
 		text     string
 		width    int
 		expected []string
-	}
-	tests := []struct {
-		name     string
-		args     args
-		want     []string
-		expected []string
 	}{
+		{"Empty text", "", 10, []string{}},
+		{"Zero width", "Hello", 0, []string{}},
+		{"Single word", "Hello", 10, []string{"Hello"}},
+		{"Two words exact fit", "Hello world", 11, []string{"Hello world"}},
+		{"Multiple words with wrapping", "a b c d e", 3, []string{"a b", "c d", "e"}},
+		{"Each word exactly fits", "hello world", 5, []string{"hello", "world"}},
 		{
-			name: "Empty text",
-			args: args{
-				text:     "",
-				width:    10,
-				expected: []string{},
-			},
+			"Multiple words with wrapping and spaces",
+			"The lazy yellow dog was caught by the slow red fox as he lay sleeping in the sun", 14,
+			[]string{"The lazy", "yellow dog", "was caught by", "the slow red", "fox as he lay", "sleeping in", "the sun"},
 		},
-		{
-			name: "Single word",
-			args: args{
-				text:     "Hello",
-				width:    10,
-				expected: []string{"Hello"},
-			},
-		},
-		{
-			name: "Two words exact fit",
-			args: args{
-				text:     "Hello world",
-				width:    11,
-				expected: []string{"Hello world"},
-			},
-		},
-		{
-			name: "Multiple words with wrapping",
-			args: args{
-				text:     "a b c d e",
-				width:    3,
-				expected: []string{"a b", "c d", "e"},
-			},
-		},
-		{
-			name: "Each word exactly fits",
-			args: args{
-				text:     "hello world",
-				width:    5,
-				expected: []string{"hello", "world"},
-			},
-		},
-		{
-			name: "Multiple words with wrapping and spaces",
-			args: args{
-				text:     "The lazy yellow dog was caught by the slow red fox as he lay sleeping in the sun",
-				width:    14,
-				expected: []string{"The lazy", "yellow dog", "was caught by", "the slow red", "fox as he lay", "sleeping in", "the sun"},
-			},
-		},
-		{
-			name: "Word longer than width",
-			args: args{
-				text:     "a supercalifragilisticexpialidocious word",
-				width:    10,
-				expected: []string{"a", "supercalifragilisticexpialidocious", "word"},
-			},
-		},
-		{
-			name: "Width counts runes not bytes",
-			args: args{
-				text:     "café au lait",
-				width:    7,
-				expected: []string{"café au", "lait"},
-			},
-		},
+		{"Word longer than width", "a supercalifragilisticexpialidocious word", 10, []string{"a", "supercalifragilisticexpialidocious", "word"}},
+		{"Width counts runes not bytes", "café au lait", 7, []string{"café au", "lait"}},
+		{"Breaks at a soft hyphen", soft("an ex|tra|or|di|nary day"), 10, []string{"an extra-", "ordinary", "day"}},
+		{"No second hyphen after a hyphen", soft("well re-|enter now"), 6, []string{"well", "re-", "enter", "now"}},
+		{"Differs from minimum raggedness", "big big dog quickly red", 10, []string{"big big", "dog", "quickly", "red"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := linebreak.KnuthPlass(tt.args.text, tt.args.width)
-			assert.Equal(t, tt.args.expected, result)
+			assert.Equal(t, tt.expected, linebreak.KnuthPlass(tt.text, tt.width))
 		})
 	}
+
+	t.Run("Minimum raggedness gives a different result", func(t *testing.T) {
+		assert.Equal(t, []string{"big", "big dog", "quickly", "red"}, linebreak.MinRaggedness("big big dog quickly red", 10))
+	})
 }
