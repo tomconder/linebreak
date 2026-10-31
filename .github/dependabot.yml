@@ -1,25 +1,22 @@
 version: 2
+
+multi-ecosystem-groups:
+  dependencies:
+    schedule:
+      interval: "monthly"
+
 updates:
   - package-ecosystem: "gomod"
     directory: "/"
-    schedule:
-      interval: "monthly"
-    groups:
-      gomod:
-        patterns: ["*"]
+    patterns: ["*"]
+    multi-ecosystem-group: "dependencies"
 
   - package-ecosystem: "github-actions"
     directory: "/"
-    schedule:
-      interval: "monthly"
-    groups:
-      github-actions:
-        patterns: ["*"]
+    patterns: ["*"]
+    multi-ecosystem-group: "dependencies"
 
   - package-ecosystem: "pre-commit"
     directory: "/"
-    schedule:
-      interval: "monthly"
-    groups:
-      pre-commit:
-        patterns: ["*"]
+    patterns: ["*"]
+    multi-ecosystem-group: "dependencies"
