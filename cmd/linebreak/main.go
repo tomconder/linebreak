@@ -11,7 +11,7 @@ import (
 
 func main() {
 	width := flag.Int("width", 80, "maximum line width in runes")
-	algo := flag.String("algo", "kp", "line-breaking algorithm: greedy or kp")
+	algo := flag.String("algo", "kp", "line-breaking algorithm: greedy, minrag or kp")
 	flag.Parse()
 
 	if *width <= 0 {
@@ -23,10 +23,12 @@ func main() {
 	switch *algo {
 	case "greedy":
 		wrap = linebreak.Greedy
+	case "minrag":
+		wrap = linebreak.MinRaggedness
 	case "kp":
 		wrap = linebreak.KnuthPlass
 	default:
-		fmt.Fprintf(os.Stderr, "linebreak: unknown -algo %q, use greedy or kp\n", *algo)
+		fmt.Fprintf(os.Stderr, "linebreak: unknown -algo %q, use greedy, minrag or kp\n", *algo)
 		os.Exit(2)
 	}
 

@@ -7,7 +7,7 @@ import (
 	"github.com/tomconder/linebreak/pkg/linebreak"
 )
 
-func TestKnuthPlass(t *testing.T) {
+func TestMinRaggedness(t *testing.T) {
 	type args struct {
 		text     string
 		width    int
@@ -86,7 +86,7 @@ func TestKnuthPlass(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := linebreak.KnuthPlass(tt.args.text, tt.args.width)
+			result := linebreak.MinRaggedness(tt.args.text, tt.args.width)
 			assert.Equal(t, tt.args.expected, result)
 		})
 	}

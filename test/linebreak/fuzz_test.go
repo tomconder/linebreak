@@ -10,7 +10,7 @@ import (
 )
 
 // cost is the sum of squared slack over every line except the last.
-// It is the cost that KnuthPlass minimizes.
+// It is the cost that MinRaggedness minimizes.
 func cost(lines []string, width int) int {
 	total := 0
 	for _, line := range lines[:max(len(lines)-1, 0)] {
@@ -45,13 +45,13 @@ func FuzzLineBreak(f *testing.F) {
 		}
 
 		greedy := linebreak.Greedy(text, width)
-		kp := linebreak.KnuthPlass(text, width)
+		kp := linebreak.MinRaggedness(text, width)
 
 		checkLines(t, "Greedy", text, width, greedy)
-		checkLines(t, "KnuthPlass", text, width, kp)
+		checkLines(t, "MinRaggedness", text, width, kp)
 
 		if kc, gc := cost(kp, width), cost(greedy, width); kc > gc {
-			t.Fatalf("KnuthPlass cost %d is greater than Greedy cost %d: kp %q, greedy %q", kc, gc, kp, greedy)
+			t.Fatalf("MinRaggedness cost %d is greater than Greedy cost %d: minrag %q, greedy %q", kc, gc, kp, greedy)
 		}
 	})
 }

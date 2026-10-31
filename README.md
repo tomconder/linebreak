@@ -25,7 +25,7 @@ echo "The lazy yellow dog was caught by the slow red fox" | go run github.com/to
 ```
 
 * `-width`: maximum line width in runes (default 80)
-* `-algo`: `greedy` or `kp` for Knuth-Plass (default `kp`)
+* `-algo`: `greedy`, `minrag` for minimum raggedness, or `kp` for Knuth-Plass (default `kp`)
 
 To use the package in your project, you can get it using Go modules:
 
@@ -57,9 +57,9 @@ sleeping in
 the sun
 ```
 
-### Knuth-Plass
+### Minimum raggedness
 
-The [Knuth-Plass line breaking algorithm](https://en.wikipedia.org/wiki/Knuth%E2%80%93Plass_line-breaking_algorithm) breaks a sequence of words into lines that do not exceed the given width, except for a word that is longer than the width. It uses [dynamic programming](https://en.wikipedia.org/wiki/Dynamic_programming) to determine optimal breakpoints based on a penalty function that discourages trailing empty spaces.
+The minimum raggedness algorithm breaks a sequence of words into lines that do not exceed the given width, except for a word that is longer than the width. It uses [dynamic programming](https://en.wikipedia.org/wiki/Dynamic_programming) to choose the breaks that minimize the sum of the squared trailing spaces of every line except the last.
 
 For example, the following text with a given width of 14:
 
