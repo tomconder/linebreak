@@ -1,12 +1,9 @@
 package linebreak
 
-import "math"
-
-// KnuthPlass is a temporary alias for MinRaggedness. The true Knuth-Plass
-// algorithm replaces it.
-func KnuthPlass(text string, width int) []string {
-	return MinRaggedness(text, width)
-}
+import (
+	"math"
+	"strings"
+)
 
 // lineFit is the result of setting one line.
 type lineFit struct {
@@ -192,4 +189,49 @@ func breaks(items []item, width, lineEndStretch int) ([]int, float64) {
 		result[i], result[j] = result[j], result[i]
 	}
 	return result, total
+}
+
+// segments breaks the text into lines, and splits each line into the runs of
+// text between its spaces. A line that ends at a soft hyphen gets a "-".
+func segments(text string, width int, set setting) [][]string {
+	items := tokenize(text, set.interwordStretch)
+	if width <= 0 || items == nil {
+		return nil
+	}
+	ends, _ := breaks(items, width, set.lineEndStretch)
+	lines := make([][]string, 0, len(ends))
+	start := 0
+	for _, end := range ends {
+		var segs []string
+		var sb strings.Builder
+		for _, it := range items[start:end] {
+			switch {
+			case it.kind == box:
+				sb.WriteString(it.text)
+			case it.kind == glue && !it.infinite:
+				segs = append(segs, sb.String())
+				sb.Reset()
+			}
+		}
+		if items[end].flagged {
+			sb.WriteString("-")
+		}
+		lines = append(lines, append(segs, sb.String()))
+		start = end + 1
+	}
+	return lines
+}
+
+/*
+KnuthPlass wraps the text into lines that do not exceed the width. It uses the
+Knuth-Plass algorithm, which chooses the breaks with the lowest total demerits
+for the whole paragraph. Words can also break at soft hyphens (U+00AD). The
+lines are ragged-right; use Justify for justified lines.
+*/
+func KnuthPlass(text string, width int) []string {
+	lines := []string{}
+	for _, segs := range segments(text, width, ragged) {
+		lines = append(lines, strings.Join(segs, " "))
+	}
+	return lines
 }
