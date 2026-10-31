@@ -9,20 +9,32 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: read
+
 jobs:
 
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
+        go: [ go.mod, stable ]
+    runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v7
       with:
-        go-version: '1.24.4'
+        go-version-file: ${{ matrix.go == 'go.mod' && 'go.mod' || '' }}
+        go-version: ${{ matrix.go == 'stable' && 'stable' || '' }}
 
     - name: Build
       run: go build -v ./...
+
+    - name: Vet
+      run: go vet ./...
 
     - name: Test
       run: go test -v ./...
