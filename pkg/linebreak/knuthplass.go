@@ -51,11 +51,11 @@ func fitness(r float64) int {
 // fitness class and flag of the line before it.
 //
 // ponytail: glue and the paragraph-end break have penalty 0, and no penalty
-// is negative, so (l+b+p)² covers every break. Add the paper's l²+b²-p² case
+// is negative, so (l+b)² + p² covers every break. Add the (l+b)² - p² case
 // if negative penalties are ever added.
 func demerits(f lineFit, p item, class, prevClass int, prevFlagged bool) float64 {
-	d := linePenalty + f.badness + float64(p.penalty)
-	d *= d
+	d := linePenalty + f.badness
+	d = d*d + float64(p.penalty*p.penalty)
 	if p.flagged && prevFlagged {
 		d += flaggedDemerits
 	}
@@ -106,6 +106,11 @@ func lineAt(items []item, s sums, start, end, width, lineEndStretch int) lineFit
 		natural += items[end].width
 	}
 	stretch := s.stretch[end] - s.stretch[start] + lineEndStretch
+	if stretch == 0 {
+		// A justified line with no spaces is printed ragged, so score it as
+		// ragged instead of giving it the maximum badness.
+		stretch = ragged.lineEndStretch
+	}
 	// only the last line holds the infinite glue, just before the final break
 	return fit(natural, stretch, s.boxes[end]-s.boxes[start], width, end == len(items)-1)
 }
@@ -207,7 +212,7 @@ func segments(text string, width int, set setting) [][]string {
 				sb.Reset()
 			}
 		}
-		if items[end].flagged {
+		if items[end].flagged && items[end].width > 0 {
 			sb.WriteString("-")
 		}
 		lines = append(lines, append(segs, sb.String()))

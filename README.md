@@ -89,16 +89,16 @@ red                  red
 
 ### Justify
 
-`Justify` runs the Knuth-Plass algorithm with spaces that can stretch, and then it pads every line except the last to the full width. It doesn't pad a line that has one word. For the example text at width 14, it gives the following lines:
+`Justify` runs the Knuth-Plass algorithm with spaces that can stretch, and then it pads every line except the last to the full width. It doesn't pad a line that has one word, so it scores that line as ragged. For the example text at width 14, it gives the following lines:
 
 ```
-The       lazy
-yellow dog was
-caught  by the
-slow  red  fox
-as    he   lay
-sleeping    in
-the sun
+The
+lazy    yellow
+dog was caught
+by   the  slow
+red  fox as he
+lay   sleeping
+in the sun
 ```
 
 Monospace text can only add whole spaces, so narrow widths leave wide gaps. Justified output looks better at widths of 40 or more.

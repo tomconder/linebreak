@@ -34,6 +34,7 @@ func TestKnuthPlass(t *testing.T) {
 		{"Word longer than width", "a supercalifragilisticexpialidocious word", 10, []string{"a", "supercalifragilisticexpialidocious", "word"}},
 		{"Width counts runes not bytes", "café au lait", 7, []string{"café au", "lait"}},
 		{"Breaks at a soft hyphen", soft("an ex|tra|or|di|nary day"), 10, []string{"an extra-", "ordinary", "day"}},
+		{"No second hyphen after a hyphen", soft("well re-|enter now"), 6, []string{"well", "re-", "enter", "now"}},
 		{"Differs from minimum raggedness", "big big dog quickly red", 10, []string{"big big", "dog", "quickly", "red"}},
 	}
 	for _, tt := range tests {

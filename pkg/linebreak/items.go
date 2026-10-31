@@ -7,7 +7,12 @@ import (
 
 const softHyphen = string(rune(0xAD))
 
-// Knuth-Plass parameters, from Knuth and Plass (1981) and TeX's defaults.
+// Knuth-Plass parameters. linePenalty, hyphenPenalty and fitnessDemerits are
+// TeX's \linepenalty, \hyphenpenalty and \adjdemerits. flaggedDemerits is
+// lower than TeX's \doublehyphendemerits (10000).
+//
+// ponytail: no \finalhyphendemerits (TeX: 5000). Add it if a hyphen at the
+// end of the second-to-last line must cost more.
 const (
 	linePenalty     = 10
 	hyphenPenalty   = 50
@@ -51,7 +56,7 @@ type item struct {
 
 // tokenize turns text into items. Words are boxes, spaces are glue, and each
 // soft hyphen is a flagged penalty with the width of the "-" it adds when the
-// line breaks there.
+// line breaks there. A soft hyphen after a "-" adds nothing, so its width is 0.
 func tokenize(text string, stretch int) []item {
 	var items []item
 	for _, word := range strings.Fields(text) {
@@ -69,7 +74,11 @@ func tokenize(text string, stretch int) []item {
 		}
 		for j, p := range parts {
 			if j > 0 {
-				items = append(items, item{kind: penalty, width: 1, penalty: hyphenPenalty, flagged: true})
+				w := 1
+				if strings.HasSuffix(parts[j-1], "-") {
+					w = 0
+				}
+				items = append(items, item{kind: penalty, width: w, penalty: hyphenPenalty, flagged: true})
 			}
 			items = append(items, item{kind: box, text: p, width: utf8.RuneCountInString(p)})
 		}

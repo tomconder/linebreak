@@ -58,15 +58,31 @@ func TestDemerits(t *testing.T) {
 
 	// (10 + 337.5)², plus fitness demerits because class 3 follows class 1
 	assert.Equal(t, 130756.25, demerits(lineFit{feasible: true, ratio: 1.5, badness: 337.5}, space, 3, 1, false))
-	// (10 + 0 + 50)², plus flagged demerits for two hyphen lines in a row
-	assert.Equal(t, 6600.0, demerits(lineFit{feasible: true}, hyphen, 1, 1, true))
+	// (10 + 0)² + 50², plus flagged demerits for two hyphen lines in a row
+	assert.Equal(t, 5600.0, demerits(lineFit{feasible: true}, hyphen, 1, 1, true))
 	// the forced break adds no penalty: (10 + 0)²
 	assert.Equal(t, 100.0, demerits(lineFit{feasible: true}, end, 1, 2, false))
 }
 
+// total returns the demerits of the lines that end at ends, or false if a
+// line is not feasible.
+func total(items []item, ends []int, width, lineEndStretch int) (float64, bool) {
+	s := prefixSums(items)
+	sum, start, prevClass, prevFlagged := 0.0, 0, 1, false
+	for _, end := range ends {
+		f := lineAt(items, s, start, end, width, lineEndStretch)
+		if !f.feasible {
+			return 0, false
+		}
+		class := fitness(f.ratio)
+		sum += demerits(f, items[end], class, prevClass, prevFlagged)
+		prevClass, prevFlagged, start = class, items[end].flagged, end+1
+	}
+	return sum, true
+}
+
 // bruteForce tries every set of breaks and returns the lowest total demerits.
 func bruteForce(items []item, width, lineEndStretch int) float64 {
-	s := prefixSums(items)
 	var optional []int
 	for i := 0; i < len(items)-1; i++ {
 		if legal(items, i) {
@@ -82,19 +98,8 @@ func bruteForce(items []item, width, lineEndStretch int) float64 {
 			}
 		}
 		ends = append(ends, len(items)-1)
-		total, start, prevClass, prevFlagged, ok := 0.0, 0, 1, false, true
-		for _, end := range ends {
-			f := lineAt(items, s, start, end, width, lineEndStretch)
-			if !f.feasible {
-				ok = false
-				break
-			}
-			class := fitness(f.ratio)
-			total += demerits(f, items[end], class, prevClass, prevFlagged)
-			prevClass, prevFlagged, start = class, items[end].flagged, end+1
-		}
-		if ok && total < best {
-			best = total
+		if sum, ok := total(items, ends, width, lineEndStretch); ok && sum < best {
+			best = sum
 		}
 	}
 	return best
@@ -112,8 +117,12 @@ func TestBreaksMatchesBruteForce(t *testing.T) {
 		for _, set := range []setting{ragged, justified} {
 			for width := 1; width <= 30; width++ {
 				items := tokenize(text, set.interwordStretch)
-				_, got := breaks(items, width, set.lineEndStretch)
+				ends, got := breaks(items, width, set.lineEndStretch)
 				assert.Equal(t, bruteForce(items, width, set.lineEndStretch), got, "%q %+v width %d", text, set, width)
+				// the returned breaks must give the total that breaks reports
+				sum, ok := total(items, ends, width, set.lineEndStretch)
+				assert.True(t, ok)
+				assert.Equal(t, got, sum, "%q %+v width %d: ends %v", text, set, width, ends)
 			}
 		}
 	}

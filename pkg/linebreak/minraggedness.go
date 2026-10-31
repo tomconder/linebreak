@@ -46,12 +46,11 @@ func MinRaggedness(text string, width int) []string {
 				break
 			}
 
-			slack := width - totalLen
+			// float64 so that a very large width cannot overflow the square
+			slack := float64(width - totalLen)
 			var cost float64
-			if j == n {
-				cost = 0
-			} else {
-				cost = float64(slack * slack)
+			if j < n {
+				cost = slack * slack
 			}
 
 			if minCost[i]+cost < minCost[j] {
