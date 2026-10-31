@@ -3,10 +3,11 @@ package linebreak
 import (
 	"math"
 	"strings"
+	"unicode/utf8"
 )
 
 /*
-KnuthPlass wraps the text into lines that not exceed the width. It uses the Knuth-Plass line-breaking algorithm.
+KnuthPlass wraps the text into lines that do not exceed the width. It uses the Knuth-Plass line-breaking algorithm.
 */
 func KnuthPlass(text string, width int) []string {
 	if width <= 0 {
@@ -21,7 +22,7 @@ func KnuthPlass(text string, width int) []string {
 
 	lengths := make([]int, n+1)
 	for i, word := range words {
-		lengths[i+1] = lengths[i] + len(word)
+		lengths[i+1] = lengths[i] + utf8.RuneCountInString(word)
 	}
 
 	minCost := make([]float64, n+1)

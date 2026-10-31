@@ -75,6 +75,14 @@ func TestKnuthPlass(t *testing.T) {
 				expected: []string{"a", "supercalifragilisticexpialidocious", "word"},
 			},
 		},
+		{
+			name: "Width counts runes not bytes",
+			args: args{
+				text:     "café au lait",
+				width:    7,
+				expected: []string{"café au", "lait"},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

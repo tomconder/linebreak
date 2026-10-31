@@ -69,6 +69,14 @@ func TestGreedy(t *testing.T) {
 				expected: []string{"The lazy", "yellow dog was", "caught by the", "slow red fox", "as he lay", "sleeping in", "the sun"},
 			},
 		},
+		{
+			name: "Width counts runes not bytes",
+			args: args{
+				text:     "café au lait",
+				width:    7,
+				expected: []string{"café au", "lait"},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
