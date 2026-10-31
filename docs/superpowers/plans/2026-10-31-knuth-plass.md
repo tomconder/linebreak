@@ -1215,7 +1215,7 @@ width runes wide."
 ## After the tasks
 
 - Open one PR with the five commits. Merge it with a merge commit.
-- Release as **v1.1.0**. The release notes must say that `KnuthPlass` output changes for some input, and that `MinRaggedness` gives the old output.
+- Release as **v1.1.0**. The release notes must say that `KnuthPlass` output changes for some input, and that `MinRaggedness` gives the old output. They must also say that `KnuthPlass` now removes soft hyphens (U+00AD) from its output and can split words at them, where before they stayed in the words and counted toward the width.
 
 ## Known limits (not in scope)
 
@@ -1223,3 +1223,4 @@ width runes wide."
 - No automatic hyphenation; only soft hyphens that are already in the input.
 - One paragraph per call; blank lines in the input are not kept.
 - Glue cannot shrink, so a line is never tighter than one space between words.
+- Greedy and MinRaggedness keep soft hyphens in words and count them toward the width.

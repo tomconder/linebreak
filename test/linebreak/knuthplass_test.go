@@ -41,4 +41,8 @@ func TestKnuthPlass(t *testing.T) {
 			assert.Equal(t, tt.expected, linebreak.KnuthPlass(tt.text, tt.width))
 		})
 	}
+
+	t.Run("Minimum raggedness gives a different result", func(t *testing.T) {
+		assert.Equal(t, []string{"big", "big dog", "quickly", "red"}, linebreak.MinRaggedness("big big dog quickly red", 10))
+	})
 }
