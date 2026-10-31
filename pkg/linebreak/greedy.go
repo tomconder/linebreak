@@ -1,9 +1,17 @@
+// Package linebreak wraps text into lines of a given width.
+//
+// Width is counted in runes. A word longer than the width is placed on a
+// line by itself, so that line is wider than the width.
 package linebreak
 
 import (
 	"strings"
+	"unicode/utf8"
 )
 
+/*
+Greedy wraps the text into lines that do not exceed the width. It uses the greedy line-breaking algorithm.
+*/
 func Greedy(text string, width int) []string {
 	if width <= 0 {
 		return []string{}
@@ -22,7 +30,7 @@ func Greedy(text string, width int) []string {
 	var sb strings.Builder
 
 	for _, word := range words {
-		wordLength := len(word)
+		wordLength := utf8.RuneCountInString(word)
 
 		if lineLength == 0 {
 			sb.WriteString(word)
