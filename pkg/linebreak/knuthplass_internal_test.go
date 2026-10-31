@@ -126,3 +126,10 @@ func TestBreaksEndAtForcedBreak(t *testing.T) {
 	ends, _ := breaks(items, 10, ragged.lineEndStretch)
 	assert.Equal(t, []int{3, 8}, ends) // the glue after "lazy", then the forced break
 }
+
+func TestLegalSkipsParagraphEndGlue(t *testing.T) {
+	items := tokenize("a b", ragged.interwordStretch)
+	// items: box "a", glue, box "b", infinite glue, forced penalty
+	assert.True(t, legal(items, 1))
+	assert.False(t, legal(items, 3))
+}

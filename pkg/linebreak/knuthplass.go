@@ -99,7 +99,7 @@ func legal(items []item, i int) bool {
 	case penalty:
 		return true
 	case glue:
-		return i > 0 && items[i-1].kind == box
+		return i > 0 && items[i-1].kind == box && !items[i].infinite
 	}
 	return false
 }
