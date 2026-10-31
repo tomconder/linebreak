@@ -47,7 +47,6 @@ type item struct {
 	infinite bool // glue only: the paragraph-end glue that fills the last line
 	penalty  int  // penalty only
 	flagged  bool // penalty only: a hyphen break
-	forced   bool // penalty only: the paragraph-end break
 }
 
 // tokenize turns text into items. Words are boxes, spaces are glue, and each
@@ -80,5 +79,5 @@ func tokenize(text string, stretch int) []item {
 	}
 	return append(items,
 		item{kind: glue, infinite: true},
-		item{kind: penalty, forced: true})
+		item{kind: penalty})
 }

@@ -2,6 +2,7 @@ package linebreak
 
 import (
 	"math"
+	"slices"
 	"strings"
 	"unicode/utf8"
 )
@@ -66,9 +67,7 @@ func MinRaggedness(text string, width int) []string {
 	}
 	breakList = append(breakList, 0)
 
-	for i, j := 0, len(breakList)-1; i < j; i, j = i+1, j-1 {
-		breakList[i], breakList[j] = breakList[j], breakList[i]
-	}
+	slices.Reverse(breakList)
 
 	groups := make([]string, 0, len(breakList)-1)
 	for i := 0; i < len(breakList)-1; i++ {

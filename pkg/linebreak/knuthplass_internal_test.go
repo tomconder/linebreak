@@ -21,14 +21,14 @@ func TestTokenize(t *testing.T) {
 		{kind: glue, width: 1, stretch: 2},
 		{kind: box, text: "day", width: 3},
 		{kind: glue, infinite: true},
-		{kind: penalty, forced: true},
+		{kind: penalty},
 	}, tokenize(soft("ex|tra day"), 2))
 
 	// soft hyphens with no text next to them are dropped
 	assert.Equal(t, []item{
 		{kind: box, text: "a", width: 1},
 		{kind: glue, infinite: true},
-		{kind: penalty, forced: true},
+		{kind: penalty},
 	}, tokenize(soft("| a||"), 0))
 
 	assert.Nil(t, tokenize("  ", 0))
@@ -54,7 +54,7 @@ func TestFitness(t *testing.T) {
 func TestDemerits(t *testing.T) {
 	space := item{kind: glue, width: 1}
 	hyphen := item{kind: penalty, width: 1, penalty: hyphenPenalty, flagged: true}
-	end := item{kind: penalty, forced: true}
+	end := item{kind: penalty}
 
 	// (10 + 337.5)², plus fitness demerits because class 3 follows class 1
 	assert.Equal(t, 130756.25, demerits(lineFit{feasible: true, ratio: 1.5, badness: 337.5}, space, 3, 1, false))
@@ -62,8 +62,6 @@ func TestDemerits(t *testing.T) {
 	assert.Equal(t, 6600.0, demerits(lineFit{feasible: true}, hyphen, 1, 1, true))
 	// the forced break adds no penalty: (10 + 0)²
 	assert.Equal(t, 100.0, demerits(lineFit{feasible: true}, end, 1, 2, false))
-	// a negative penalty is subtracted: (10 + 0)² - 20²
-	assert.Equal(t, -300.0, demerits(lineFit{feasible: true}, item{kind: penalty, penalty: -20}, 1, 1, false))
 }
 
 // bruteForce tries every set of breaks and returns the lowest total demerits.

@@ -2,6 +2,7 @@ package linebreak
 
 import (
 	"math"
+	"slices"
 	"strings"
 )
 
@@ -48,17 +49,14 @@ func fitness(r float64) int {
 
 // demerits is the cost of one line that ends at break item p, given the
 // fitness class and flag of the line before it.
+//
+// ponytail: glue and the paragraph-end break have penalty 0, and no penalty
+// is negative, so (l+b+p)² covers every break. Add the paper's l²+b²-p² case
+// if negative penalties are ever added.
 func demerits(f lineFit, p item, class, prevClass int, prevFlagged bool) float64 {
-	d := linePenalty + f.badness
-	switch {
-	case p.kind == penalty && !p.forced && p.penalty >= 0:
-		d = (d + float64(p.penalty)) * (d + float64(p.penalty))
-	case p.kind == penalty && !p.forced:
-		d = d*d - float64(p.penalty*p.penalty)
-	default:
-		d *= d
-	}
-	if p.kind == penalty && p.flagged && prevFlagged {
+	d := linePenalty + f.badness + float64(p.penalty)
+	d *= d
+	if p.flagged && prevFlagged {
 		d += flaggedDemerits
 	}
 	if class-prevClass > 1 || prevClass-class > 1 {
@@ -69,14 +67,14 @@ func demerits(f lineFit, p item, class, prevClass int, prevFlagged bool) float64
 
 // sums holds prefix sums over items, so the totals of a line are two lookups.
 type sums struct {
-	width, stretch, boxes, infinite []int
+	width, stretch, boxes []int
 }
 
 func prefixSums(items []item) sums {
 	n := len(items)
-	s := sums{make([]int, n+1), make([]int, n+1), make([]int, n+1), make([]int, n+1)}
+	s := sums{make([]int, n+1), make([]int, n+1), make([]int, n+1)}
 	for i, it := range items {
-		s.width[i+1], s.stretch[i+1], s.boxes[i+1], s.infinite[i+1] = s.width[i], s.stretch[i], s.boxes[i], s.infinite[i]
+		s.width[i+1], s.stretch[i+1], s.boxes[i+1] = s.width[i], s.stretch[i], s.boxes[i]
 		switch it.kind {
 		case box:
 			s.width[i+1] += it.width
@@ -84,9 +82,6 @@ func prefixSums(items []item) sums {
 		case glue:
 			s.width[i+1] += it.width
 			s.stretch[i+1] += it.stretch
-			if it.infinite {
-				s.infinite[i+1]++
-			}
 		}
 	}
 	return s
@@ -111,7 +106,8 @@ func lineAt(items []item, s sums, start, end, width, lineEndStretch int) lineFit
 		natural += items[end].width
 	}
 	stretch := s.stretch[end] - s.stretch[start] + lineEndStretch
-	return fit(natural, stretch, s.boxes[end]-s.boxes[start], width, s.infinite[end]-s.infinite[start] > 0)
+	// only the last line holds the infinite glue, just before the final break
+	return fit(natural, stretch, s.boxes[end]-s.boxes[start], width, end == len(items)-1)
 }
 
 // breaks returns the item indexes where lines end, chosen to minimize the
@@ -185,9 +181,7 @@ func breaks(items []item, width, lineEndStretch int) ([]int, float64) {
 		st := best[k][class]
 		k, class = st.prevNode, st.prevClass
 	}
-	for i, j := 0, len(result)-1; i < j; i, j = i+1, j-1 {
-		result[i], result[j] = result[j], result[i]
-	}
+	slices.Reverse(result)
 	return result, total
 }
 
